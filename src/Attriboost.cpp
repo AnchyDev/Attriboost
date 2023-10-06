@@ -437,6 +437,13 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 {
     ClearGossipMenuFor(player);
 
+    if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
+    {
+        SendGossipMenuFor(player, 441192, creature);
+
+        return true;
+    }
+
     player->PrepareQuestMenu(creature->GetGUID());
 
     if (HasAttributesToSpend(player))
