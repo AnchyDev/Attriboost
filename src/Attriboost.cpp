@@ -64,6 +64,8 @@ uint32 AttriboostPlayerScript::GetRandomAttributeForClass(Player* player)
 {
     switch (player->getClass())
     {
+    case CLASS_DEATH_KNIGHT:
+    case CLASS_WARRIOR:
     case CLASS_ROGUE:
         switch (urand(0, 2))
         {
@@ -73,6 +75,37 @@ uint32 AttriboostPlayerScript::GetRandomAttributeForClass(Player* player)
             return ATTR_SPELL_AGILITY;
         case 2:
             return ATTR_SPELL_STRENGTH;
+        }
+
+    case CLASS_WARLOCK:
+    case CLASS_PRIEST:
+    case CLASS_MAGE:
+        switch (urand(0, 2))
+        {
+        case 0:
+            return ATTR_SPELL_STAMINA;
+        case 1:
+            return ATTR_SPELL_INTELLECT;
+        case 2:
+            return ATTR_SPELL_SPIRIT;
+        }
+
+    case CLASS_SHAMAN:
+    case CLASS_HUNTER:
+    case CLASS_PALADIN:
+    case CLASS_DRUID:
+        switch (urand(0, 4))
+        {
+        case 0:
+            return ATTR_SPELL_STAMINA;
+        case 1:
+            return ATTR_SPELL_STRENGTH;
+        case 2:
+            return ATTR_SPELL_AGILITY;
+        case 3:
+            return ATTR_SPELL_INTELLECT;
+        case 4:
+            return ATTR_SPELL_SPIRIT;
         }
     }
 
