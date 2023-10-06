@@ -463,7 +463,8 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     if (HasAttributes(player))
     {
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\UnlearnGossipIcon:16|t Reset Attributes", GOSSIP_SENDER_MAIN, 1000, "Are you sure you want to reset your attributes?", 2500000, false);
+        uint32 resetCost = sConfigMgr->GetOption<uint32>("Attriboost.ResetCost", 2500000);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\UnlearnGossipIcon:16|t Reset Attributes", GOSSIP_SENDER_MAIN, 1000, "Are you sure you want to reset your attributes?", resetCost, false);
     }
 
     AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\HealerGossipIcon:16|t Settings", GOSSIP_SENDER_MAIN, 2000);

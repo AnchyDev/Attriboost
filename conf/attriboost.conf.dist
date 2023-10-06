@@ -15,3 +15,11 @@
 #
 
 Attriboost.Enable = 0
+
+#
+#    Attriboost.ResetCost
+#        Description: The cost of resetting attributes in copper.
+#        Default:     2500000 (250 gold)
+#
+
+Attriboost.ResetCost = 2500000
