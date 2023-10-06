@@ -263,6 +263,7 @@ void AttriboostWorldScript::OnAfterConfigLoad(bool reload)
 {
     if (reload)
     {
+        SaveAttriboosts();
         ClearAttriboosts();
     }
 
