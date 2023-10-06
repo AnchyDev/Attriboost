@@ -18,7 +18,7 @@ void AttriboostPlayerScript::OnLogin(Player* player)
         return;
     }
 
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     ApplyAttributes(player, attributes);
 }
 
@@ -39,7 +39,7 @@ void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* 
         return;
     }
 
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
         return;
@@ -123,8 +123,10 @@ std::string AttriboostPlayerScript::GetAttributeName(uint32 attribute)
     return std::string();
 }
 
-Attriboosts* GetAttriboosts(uint64 guid)
+Attriboosts* GetAttriboosts(Player* player)
 {
+    auto guid = player->GetGUID().GetRawValue();
+
     auto attri = attriboostsMap.find(guid);
     if (attri == attriboostsMap.end())
     {
@@ -353,7 +355,7 @@ bool HasAttributesToSpend(Player* player)
         return false;
     }
 
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
         return false;
@@ -364,7 +366,7 @@ bool HasAttributesToSpend(Player* player)
 
 bool HasAttributes(Player* player)
 {
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
         return false;
@@ -375,7 +377,7 @@ bool HasAttributes(Player* player)
 
 uint32 GetAttributesToSpend(Player* player)
 {
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
         return 0;
@@ -391,7 +393,7 @@ bool HasSetting(Player* player, uint32 setting)
         return false;
     }
 
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
         return false;
@@ -406,7 +408,7 @@ void ToggleSetting(Player* player, uint32 setting)
         return;
     }
 
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
         return;
@@ -448,23 +450,30 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     if (HasAttributesToSpend(player))
     {
+        auto attributes = GetAttriboosts(player);
+        if (!attributes)
+        {
+            CloseGossipMenuFor(player);
+            return false;
+        }
+
         AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttribute(s) to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
 
         if (HasSetting(player, ATTR_SETTING_PROMPT))
         {
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina", GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength", GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH, "Are you sure you want to spend your points in strength?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility", GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect", GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit", GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina ({})", attributes->Stamina), GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength ({})", attributes->Strength), GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH, "Are you sure you want to spend your points in strength?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility ({})", attributes->Agility), GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect ({})", attributes->Intellect), GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit ({})", attributes->Spirit), GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
         }
         else
         {
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina", GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength", GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility", GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect", GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit", GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina ({})", attributes->Stamina), GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength ({})", attributes->Strength), GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility ({})", attributes->Agility), GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect ({})", attributes->Intellect), GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit ({})", attributes->Spirit), GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
         }
     }
 
@@ -547,7 +556,7 @@ void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 
         return;
     }
 
-    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
         return;

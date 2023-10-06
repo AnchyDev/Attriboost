@@ -39,7 +39,7 @@ struct Attriboosts
 
 std::unordered_map<uint64, Attriboosts> attriboostsMap;
 
-Attriboosts* GetAttriboosts(uint64 /*guid*/);
+Attriboosts* GetAttriboosts(Player* /*player*/);
 void ClearAttriboosts();
 void LoadAttriboosts();
 void ApplyAttributes(Player* /*player*/, Attriboosts* /*attributes*/);
