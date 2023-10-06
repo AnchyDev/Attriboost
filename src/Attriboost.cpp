@@ -129,12 +129,16 @@ Attriboosts* GetAttriboosts(uint64 guid)
     if (attri == attriboostsMap.end())
     {
         Attriboosts attriboosts;
+
         attriboosts.Unallocated = 0;
+
         attriboosts.Stamina = 0;
         attriboosts.Strength = 0;
         attriboosts.Agility = 0;
         attriboosts.Intellect = 0;
         attriboosts.Spirit = 0;
+
+        attriboosts.Settings = ATTR_SETTING_PROMPT;
 
         auto result = attriboostsMap.emplace(guid, attriboosts);
         attri = result.first;
@@ -169,12 +173,16 @@ void LoadAttriboosts()
         uint64 guid = fields[0].Get<uint64>();
 
         Attriboosts attriboosts;
+
         attriboosts.Unallocated = fields[1].Get<uint32>();
+
         attriboosts.Stamina = fields[2].Get<uint32>();
         attriboosts.Strength = fields[3].Get<uint32>();
         attriboosts.Agility = fields[4].Get<uint32>();
         attriboosts.Intellect = fields[5].Get<uint32>();
         attriboosts.Spirit = fields[6].Get<uint32>();
+
+        attriboosts.Settings = fields[7].Get<uint32>();
 
         attriboostsMap.emplace(guid, attriboosts);
 
@@ -191,16 +199,19 @@ void SaveAttriboosts()
         auto guid = it->first;
 
         auto unallocated = it->second.Unallocated;
+
         auto stamina = it->second.Stamina;
         auto strength = it->second.Strength;
         auto agility = it->second.Agility;
         auto intellect = it->second.Intellect;
         auto spirit = it->second.Spirit;
 
-        CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit) VALUES ({}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}",
+        auto settings = it->second.Settings;
+
+        CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit, settings) VALUES ({}, {}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}, settings={}",
             guid,
-            unallocated, stamina, strength, agility, intellect, spirit,
-            unallocated, stamina, strength, agility, intellect, spirit);
+            unallocated, stamina, strength, agility, intellect, spirit, settings,
+            unallocated, stamina, strength, agility, intellect, spirit, settings);
     }
 }
 
@@ -373,6 +384,44 @@ uint32 GetAttributesToSpend(Player* player)
     return attributes->Unallocated;
 }
 
+bool HasSetting(Player* player, uint32 setting)
+{
+    if (!player)
+    {
+        return false;
+    }
+
+    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    if (!attributes)
+    {
+        return false;
+    }
+
+    return (attributes->Settings & setting) == setting;
+}
+void ToggleSetting(Player* player, uint32 setting)
+{
+    if (!player)
+    {
+        return;
+    }
+
+    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    if (!attributes)
+    {
+        return;
+    }
+
+    if (HasSetting(player, setting))
+    {
+        attributes->Settings -= setting;
+    }
+    else
+    {
+        attributes->Settings += setting;
+    }
+}
+
 void AttriboostWorldScript::OnAfterConfigLoad(bool reload)
 {
     if (reload)
@@ -392,18 +441,32 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     if (HasAttributesToSpend(player))
     {
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|cff00FF00{} |rAttributes to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina", GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength", GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility", GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect", GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit", GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttributes to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
+
+        if (HasSetting(player, ATTR_SETTING_PROMPT))
+        {
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina", GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength", GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH, "Are you sure you want to spend your points in strength?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility", GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect", GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit", GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
+        }
+        else
+        {
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina", GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength", GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility", GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect", GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit", GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
+        }
     }
 
     if (HasAttributes(player))
     {
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "Reset Attributes|n|TInterface\\Icons\\INV_Misc_Coin_01:16|t 250", GOSSIP_SENDER_MAIN, 1000, "Are you sure you want to reset your attributes?", 2500000, false);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\UnlearnGossipIcon:16|t Reset Attributes", GOSSIP_SENDER_MAIN, 1000, "Are you sure you want to reset your attributes?", 2500000, false);
     }
+
+    AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\HealerGossipIcon:16|t Settings", GOSSIP_SENDER_MAIN, 2000);
 
     if (HasAttributesToSpend(player))
     {
@@ -436,7 +499,37 @@ bool AttriboostCreatureScript::OnGossipSelect(Player* player, Creature* creature
         OnGossipHello(player, creature);
     }
 
+    if (action >= 2000 && action < 3000)
+    {
+        HandleSettings(player, creature, action);
+    }
+
     return true;
+}
+
+void AttriboostCreatureScript::HandleSettings(Player* player, Creature* creature, uint32 action)
+{
+    if (action == 2000)
+    {
+        ClearGossipMenuFor(player);
+
+        player->PrepareQuestMenu(creature->GetGUID());
+
+        auto hasPromptSetting = HasSetting(player, ATTR_SETTING_PROMPT);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\HealerGossipIcon:16|t Prompt 'Are you sure': {}", hasPromptSetting ? "|cff00FF00Enabled|r" : "|cffFF0000Disabled"), GOSSIP_SENDER_MAIN, 2001);
+
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "Back", GOSSIP_SENDER_MAIN, 0);
+
+        SendGossipMenuFor(player, 441190, creature);
+
+        return;
+    }
+
+    if (action == 2001)
+    {
+        ToggleSetting(player, ATTR_SETTING_PROMPT);
+        HandleSettings(player, creature, 2000);
+    }
 }
 
 void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 attribute, bool reset)
