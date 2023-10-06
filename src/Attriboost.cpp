@@ -4,6 +4,8 @@
 #include "Config.h"
 #include "Spell.h"
 
+#include <AI/ScriptedAI/ScriptedGossip.h>
+
 void AttriboostPlayerScript::OnLogin(Player* player)
 {
     if (!player)
@@ -20,44 +22,30 @@ void AttriboostPlayerScript::OnLogin(Player* player)
     ApplyAttributes(player, attributes);
 }
 
-bool AttriboostPlayerScript::CanUseItem(Player* player, ItemTemplate const* proto, InventoryResult& /*result*/)
+void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* quest)
 {
-    if (!proto)
+    if (!player)
     {
-        return true;
+        return;
     }
 
-    if (proto->ItemId != ATTR_ITEM)
+    if (quest->GetQuestId() != ATTR_QUEST)
     {
-        return true;
+        return;
     }
 
     if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
     {
-        ChatHandler(player->GetSession()).SendSysMessage("This item is disabled.");
-        return false;
-    }
-
-    auto attribute = GetRandomAttributeForClass(player);
-    if (!attribute)
-    {
-        LOG_WARN("module", "Failed to get random attribute for player '{}'.", player->GetName());
-        return false;
+        return;
     }
 
     auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
-    AddAttribute(attributes, attribute);
-    ApplyAttributes(player, attributes);
-
-    auto attributeName = GetAttributeName(attribute);
-    if (!attributeName.empty())
+    if (!attributes)
     {
-        ChatHandler(player->GetSession()).SendSysMessage(Acore::StringFormatFmt("Increased {} by 1.", GetAttributeName(attribute)));
+        return;
     }
 
-    player->DestroyItemCount(ATTR_ITEM, 1, true);
-
-    return true;
+    attributes->Unallocated += 1;
 }
 
 uint32 AttriboostPlayerScript::GetRandomAttributeForClass(Player* player)
@@ -141,6 +129,7 @@ Attriboosts* GetAttriboosts(uint64 guid)
     if (attri == attriboostsMap.end())
     {
         Attriboosts attriboosts;
+        attriboosts.Unallocated = 0;
         attriboosts.Stamina = 0;
         attriboosts.Strength = 0;
         attriboosts.Agility = 0;
@@ -180,11 +169,12 @@ void LoadAttriboosts()
         uint64 guid = fields[0].Get<uint64>();
 
         Attriboosts attriboosts;
-        attriboosts.Stamina = fields[1].Get<uint64>();
-        attriboosts.Strength = fields[2].Get<uint64>();
-        attriboosts.Agility = fields[3].Get<uint64>();
-        attriboosts.Intellect = fields[4].Get<uint64>();
-        attriboosts.Spirit = fields[5].Get<uint64>();
+        attriboosts.Unallocated = fields[1].Get<uint32>();
+        attriboosts.Stamina = fields[2].Get<uint32>();
+        attriboosts.Strength = fields[3].Get<uint32>();
+        attriboosts.Agility = fields[4].Get<uint32>();
+        attriboosts.Intellect = fields[5].Get<uint32>();
+        attriboosts.Spirit = fields[6].Get<uint32>();
 
         attriboostsMap.emplace(guid, attriboosts);
 
@@ -200,16 +190,17 @@ void SaveAttriboosts()
     {
         auto guid = it->first;
 
+        auto unallocated = it->second.Unallocated;
         auto stamina = it->second.Stamina;
         auto strength = it->second.Strength;
         auto agility = it->second.Agility;
         auto intellect = it->second.Intellect;
         auto spirit = it->second.Spirit;
 
-        CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, stamina, strength, agility, intellect, spirit) VALUES ({}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE stamina={}, strength={}, agility={}, intellect={}, spirit={}",
+        CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit) VALUES ({}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}",
             guid,
-            stamina, strength, agility, intellect, spirit,
-            stamina, strength, agility, intellect, spirit);
+            unallocated, stamina, strength, agility, intellect, spirit,
+            unallocated, stamina, strength, agility, intellect, spirit);
     }
 }
 
@@ -224,6 +215,13 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
         }
         stamina->SetStackAmount(attributes->Stamina);
     }
+    else
+    {
+        if (player->GetAura(ATTR_SPELL_STAMINA))
+        {
+            player->RemoveAura(ATTR_SPELL_STAMINA);
+        }
+    }
 
     if (attributes->Strength > 0)
     {
@@ -233,6 +231,13 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
             strength = player->AddAura(ATTR_SPELL_STRENGTH, player);
         }
         strength->SetStackAmount(attributes->Strength);
+    }
+    else
+    {
+        if (player->GetAura(ATTR_SPELL_STRENGTH))
+        {
+            player->RemoveAura(ATTR_SPELL_STRENGTH);
+        }
     }
 
     if (attributes->Agility > 0)
@@ -244,6 +249,13 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
         }
         agility->SetStackAmount(attributes->Agility);
     }
+    else
+    {
+        if (player->GetAura(ATTR_SPELL_AGILITY))
+        {
+            player->RemoveAura(ATTR_SPELL_AGILITY);
+        }
+    }
 
     if (attributes->Intellect > 0)
     {
@@ -253,6 +265,13 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
             intellect = player->AddAura(ATTR_SPELL_INTELLECT, player);
         }
         intellect->SetStackAmount(attributes->Intellect);
+    }
+    else
+    {
+        if (player->GetAura(ATTR_SPELL_INTELLECT))
+        {
+            player->RemoveAura(ATTR_SPELL_INTELLECT);
+        }
     }
 
     if (attributes->Spirit > 0)
@@ -264,10 +283,22 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
         }
         spirit->SetStackAmount(attributes->Spirit);
     }
+    else
+    {
+        if (player->GetAura(ATTR_SPELL_SPIRIT))
+        {
+            player->RemoveAura(ATTR_SPELL_SPIRIT);
+        }
+    }
 }
 
 void AddAttribute(Attriboosts* attributes, uint32 attribute)
 {
+    if (attributes->Unallocated < 1)
+    {
+        return;
+    }
+
     switch (attribute)
     {
     case ATTR_SPELL_STAMINA:
@@ -290,6 +321,56 @@ void AddAttribute(Attriboosts* attributes, uint32 attribute)
         attributes->Spirit += 1;
         break;
     }
+
+    attributes->Unallocated -= 1;
+}
+
+void ResetAttributes(Attriboosts* attributes)
+{
+    attributes->Unallocated += attributes->Stamina + attributes->Strength + attributes->Agility + attributes->Intellect + attributes->Spirit;
+    attributes->Stamina = 0;
+    attributes->Strength = 0;
+    attributes->Agility = 0;
+    attributes->Intellect = 0;
+    attributes->Spirit = 0;
+}
+
+bool HasAttributesToSpend(Player* player)
+{
+    if (!player)
+    {
+        return false;
+    }
+
+    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    if (!attributes)
+    {
+        return false;
+    }
+
+    return attributes->Unallocated > 0;
+}
+
+bool HasAttributes(Player* player)
+{
+    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    if (!attributes)
+    {
+        return false;
+    }
+
+    return (attributes->Stamina + attributes->Strength + attributes->Agility + attributes->Intellect + attributes->Spirit) > 0;
+}
+
+uint32 GetAttributesToSpend(Player* player)
+{
+    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    if (!attributes)
+    {
+        return 0;
+    }
+
+    return attributes->Unallocated;
 }
 
 void AttriboostWorldScript::OnAfterConfigLoad(bool reload)
@@ -303,6 +384,86 @@ void AttriboostWorldScript::OnAfterConfigLoad(bool reload)
     LoadAttriboosts();
 }
 
+bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
+{
+    ClearGossipMenuFor(player);
+
+    player->PrepareQuestMenu(creature->GetGUID());
+
+    if (HasAttributesToSpend(player))
+    {
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|cff00FF00{} |rAttributes to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina", GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength", GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility", GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect", GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit", GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
+    }
+
+    if (HasAttributes(player))
+    {
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "Reset Attributes|n|TInterface\\Icons\\INV_Misc_Coin_01:16|t 250", GOSSIP_SENDER_MAIN, 1000, "Are you sure you want to reset your attributes?", 2500000, false);
+    }
+
+    if (HasAttributesToSpend(player))
+    {
+        SendGossipMenuFor(player, 441191, creature);
+    }
+    else
+    {
+        SendGossipMenuFor(player, 441190, creature);
+    }
+
+    return true;
+}
+
+bool AttriboostCreatureScript::OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
+{
+    if (action == 0)
+    {
+        OnGossipHello(player, creature);
+    }
+
+    if (action > 5000)
+    {
+        HandleAttributeAllocation(player, action, false);
+        OnGossipHello(player, creature);
+    }
+
+    if (action == 1000)
+    {
+        HandleAttributeAllocation(player, action, true);
+        OnGossipHello(player, creature);
+    }
+
+    return true;
+}
+
+void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 attribute, bool reset)
+{
+    if (!player)
+    {
+        return;
+    }
+
+    auto attributes = GetAttriboosts(player->GetGUID().GetRawValue());
+    if (!attributes)
+    {
+        return;
+    }
+
+    if (reset)
+    {
+        ResetAttributes(attributes);
+    }
+    else
+    {
+        AddAttribute(attributes, attribute);
+    }
+
+    ApplyAttributes(player, attributes);
+}
+
 void AttriboostWorldScript::OnShutdownInitiate(ShutdownExitCode /*code*/, ShutdownMask /*mask*/)
 {
     SaveAttriboosts();
@@ -312,4 +473,5 @@ void SC_AddAttriboostScripts()
 {
     new AttriboostWorldScript();
     new AttriboostPlayerScript();
+    new AttriboostCreatureScript();
 }

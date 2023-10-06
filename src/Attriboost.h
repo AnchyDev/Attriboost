@@ -6,9 +6,11 @@
 
 #include <unordered_map>
 
-enum AttriboostItems
+enum AttriboostConstants
 {
-    ATTR_ITEM = 16073
+    ATTR_ITEM = 16073,
+    ATTR_SPELL = 18282,
+    ATTR_QUEST = 441153
 };
 
 enum AttriboostStats
@@ -22,6 +24,7 @@ enum AttriboostStats
 
 struct Attriboosts
 {
+    uint32 Unallocated;
     uint32 Stamina;
     uint32 Strength;
     uint32 Agility;
@@ -36,6 +39,10 @@ void ClearAttriboosts();
 void LoadAttriboosts();
 void ApplyAttributes(Player* /*player*/, Attriboosts* /*attributes*/);
 void AddAttribute(Attriboosts* /*attributes*/, uint32 /*attribute*/);
+void ResetAttributes(Attriboosts* /*attributes*/);
+bool HasAttributesToSpend(Player* /*player*/);
+bool HasAttributes(Player* /*player*/);
+uint32 GetAttributesToSpend(Player* /*player*/);
 
 class AttriboostPlayerScript : public PlayerScript
 {
@@ -43,10 +50,21 @@ public:
     AttriboostPlayerScript() : PlayerScript("AttriboostPlayerScript") { }
 
     virtual void OnLogin(Player* /*player*/) override;
-    virtual bool CanUseItem(Player* /*player*/, ItemTemplate const* /*proto*/, InventoryResult& /*result*/) override;
+    virtual void OnPlayerCompleteQuest(Player* /*player*/, Quest const* /*quest*/) override;
 
     uint32 GetRandomAttributeForClass(Player* /*player*/);
     std::string GetAttributeName(uint32 /*attribute*/);
+};
+
+class AttriboostCreatureScript : public CreatureScript
+{
+public:
+    AttriboostCreatureScript() : CreatureScript("AttriboostCreatureScript") { }
+
+    virtual bool OnGossipHello(Player* /*player*/, Creature* /*creature*/) override;
+    virtual bool OnGossipSelect(Player* /*player*/, Creature* /*creature*/, uint32 /*sender*/, uint32 /*action*/) override;
+
+    void HandleAttributeAllocation(Player* /*player*/, uint32 /*attribute*/, bool /*reset*/);
 };
 
 class AttriboostWorldScript : public WorldScript
