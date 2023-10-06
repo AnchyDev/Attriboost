@@ -448,7 +448,7 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     if (HasAttributesToSpend(player))
     {
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttributes to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttribute(s) to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
 
         if (HasSetting(player, ATTR_SETTING_PROMPT))
         {
