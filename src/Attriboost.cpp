@@ -719,7 +719,12 @@ void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 
 
     if (reset)
     {
-        ResetAttributes(attributes);
+        auto cost = sConfigMgr->GetOption<uint32>("Attriboost.ResetCost", 2500000);
+        if (player->HasEnoughMoney(cost))
+        {
+            player->SetMoney(player->GetMoney() - cost);
+            ResetAttributes(attributes);
+        }
     }
     else
     {
