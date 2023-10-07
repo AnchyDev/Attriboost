@@ -42,6 +42,9 @@ std::unordered_map<uint64, Attriboosts> attriboostsMap;
 Attriboosts* GetAttriboosts(Player* /*player*/);
 void ClearAttriboosts();
 void LoadAttriboosts();
+Attriboosts* LoadAttriboostsForPlayer(Player* /*player*/);
+void SaveAttriboosts();
+void SaveAttriboostsForPlayer(Player* /*player*/);
 void ApplyAttributes(Player* /*player*/, Attriboosts* /*attributes*/);
 void DisableAttributes(Player* /*player*/);
 bool TryAddAttribute(Attriboosts* /*attributes*/, uint32 /*attribute*/);
@@ -61,6 +64,7 @@ public:
     AttriboostPlayerScript() : PlayerScript("AttriboostPlayerScript") { }
 
     virtual void OnLogin(Player* /*player*/) override;
+    virtual void OnLogout(Player* /*player*/) override;
     virtual void OnPlayerCompleteQuest(Player* /*player*/, Quest const* /*quest*/) override;
     virtual void OnPlayerLeaveCombat(Player* /*player*/) override;
 

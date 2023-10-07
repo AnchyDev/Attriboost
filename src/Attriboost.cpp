@@ -18,8 +18,23 @@ void AttriboostPlayerScript::OnLogin(Player* player)
         return;
     }
 
-    auto attributes = GetAttriboosts(player);
+    auto attributes = LoadAttriboostsForPlayer(player);
     ApplyAttributes(player, attributes);
+}
+
+void AttriboostPlayerScript::OnLogout(Player* player)
+{
+    if (!player)
+    {
+        return;
+    }
+
+    if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
+    {
+        return;
+    }
+
+    SaveAttriboostsForPlayer(player);
 }
 
 void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* quest)
@@ -227,6 +242,50 @@ void LoadAttriboosts()
     LOG_INFO("module", "Loaded '{}' player attriboosts.", count);
 }
 
+Attriboosts* LoadAttriboostsForPlayer(Player* player)
+{
+    if (!player)
+    {
+        return nullptr;
+    }
+
+    auto guid = player->GetGUID().GetRawValue();
+    auto qResult = CharacterDatabase.Query("SELECT * FROM attriboost_attributes WHERE guid = {}", guid);
+
+    if (!qResult)
+    {
+        LOG_ERROR("module", "Failed to load from 'attriboost_attributes' table.");
+        return nullptr;
+    }
+
+    auto fields = qResult->Fetch();
+
+    Attriboosts newAttributes;
+
+    newAttributes.Unallocated = fields[1].Get<uint32>();
+
+    newAttributes.Stamina = fields[2].Get<uint32>();
+    newAttributes.Strength = fields[3].Get<uint32>();
+    newAttributes.Agility = fields[4].Get<uint32>();
+    newAttributes.Intellect = fields[5].Get<uint32>();
+    newAttributes.Spirit = fields[6].Get<uint32>();
+
+    newAttributes.Settings = fields[7].Get<uint32>();
+
+    auto attributes = attriboostsMap.find(guid);
+
+    if (attributes == attriboostsMap.end())
+    {
+        attriboostsMap.emplace(guid, newAttributes);
+    }
+    else
+    {
+        attributes->second = newAttributes;
+    }
+
+    return &attributes->second;
+}
+
 void SaveAttriboosts()
 {
     for (auto it = attriboostsMap.begin(); it != attriboostsMap.end(); ++it)
@@ -248,6 +307,32 @@ void SaveAttriboosts()
             unallocated, stamina, strength, agility, intellect, spirit, settings,
             unallocated, stamina, strength, agility, intellect, spirit, settings);
     }
+}
+
+void SaveAttriboostsForPlayer(Player* player)
+{
+    auto attributes = GetAttriboosts(player);
+    if (!attributes)
+    {
+        return;
+    }
+
+    auto guid = player->GetGUID().GetRawValue();
+
+    auto unallocated = attributes->Unallocated;
+
+    auto stamina = attributes->Stamina;
+    auto strength = attributes->Strength;
+    auto agility = attributes->Agility;
+    auto intellect = attributes->Intellect;
+    auto spirit = attributes->Spirit;
+
+    auto settings = attributes->Settings;
+
+    CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit, settings) VALUES ({}, {}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}, settings={}",
+        guid,
+        unallocated, stamina, strength, agility, intellect, spirit, settings,
+        unallocated, stamina, strength, agility, intellect, spirit, settings);
 }
 
 void ApplyAttributes(Player* player, Attriboosts* attributes)
