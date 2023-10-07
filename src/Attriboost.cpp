@@ -411,7 +411,8 @@ void AddAttribute(Attriboosts* attributes, uint32 attribute)
 
 void ResetAttributes(Attriboosts* attributes)
 {
-    attributes->Unallocated += attributes->Stamina + attributes->Strength + attributes->Agility + attributes->Intellect + attributes->Spirit;
+    attributes->Unallocated += GetTotalAttributes(attributes);
+
     attributes->Stamina = 0;
     attributes->Strength = 0;
     attributes->Agility = 0;
@@ -443,7 +444,7 @@ bool HasAttributes(Player* player)
         return false;
     }
 
-    return (attributes->Stamina + attributes->Strength + attributes->Agility + attributes->Intellect + attributes->Spirit) > 0;
+    return GetTotalAttributes(attributes) > 0;
 }
 
 uint32 GetAttributesToSpend(Player* player)
@@ -455,6 +456,22 @@ uint32 GetAttributesToSpend(Player* player)
     }
 
     return attributes->Unallocated;
+}
+
+uint32 GetTotalAttributes(Attriboosts* attributes)
+{
+    return attributes->Stamina + attributes->Strength + attributes->Agility + attributes->Intellect + attributes->Spirit;
+}
+
+uint32 GetTotalAttributes(Player* player)
+{
+    auto attributes = GetAttriboosts(player);
+    if (!attributes)
+    {
+        return 0;
+    }
+
+    return GetTotalAttributes(attributes);
 }
 
 bool HasSetting(Player* player, uint32 setting)

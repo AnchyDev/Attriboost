@@ -49,6 +49,8 @@ void ResetAttributes(Attriboosts* /*attributes*/);
 bool HasAttributesToSpend(Player* /*player*/);
 bool HasAttributes(Player* /*player*/);
 uint32 GetAttributesToSpend(Player* /*player*/);
+uint32 GetTotalAttributes(Player* /*player*/);
+uint32 GetTotalAttributes(Attriboosts* /*attributes*/);
 bool HasSetting(Player* player, uint32 /*setting*/);
 void ToggleSetting(Player* player, uint32 /*setting*/);
 
