@@ -48,6 +48,27 @@ void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* 
     attributes->Unallocated += 1;
 }
 
+void AttriboostPlayerScript::OnPlayerLeaveCombat(Player* player)
+{
+    if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
+    {
+        return;
+    }
+
+    if (!sConfigMgr->GetOption<bool>("Attriboost.DisablePvP", false))
+    {
+        return;
+    }
+
+    auto attributes = GetAttriboosts(player);
+    if (!attributes)
+    {
+        return;
+    }
+
+    ApplyAttributes(player, attributes);
+}
+
 uint32 AttriboostPlayerScript::GetRandomAttributeForClass(Player* player)
 {
     switch (player->getClass())
@@ -221,12 +242,16 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
 {
     if (attributes->Stamina > 0)
     {
+        float hp = player->GetHealth();
+
         auto stamina = player->GetAura(ATTR_SPELL_STAMINA);
         if (!stamina)
         {
             stamina = player->AddAura(ATTR_SPELL_STAMINA, player);
         }
         stamina->SetStackAmount(attributes->Stamina);
+
+        player->SetHealth(hp);
     }
     else
     {
@@ -302,6 +327,40 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
         {
             player->RemoveAura(ATTR_SPELL_SPIRIT);
         }
+    }
+}
+
+void DisableAttributes(Player* player)
+{
+    auto attributes = GetAttriboosts(player);
+    if (!attributes)
+    {
+        return;
+    }
+
+    if (player->GetAura(ATTR_SPELL_STAMINA))
+    {
+        player->RemoveAura(ATTR_SPELL_STAMINA);
+    }
+
+    if (player->GetAura(ATTR_SPELL_STRENGTH))
+    {
+        player->RemoveAura(ATTR_SPELL_STRENGTH);
+    }
+
+    if (player->GetAura(ATTR_SPELL_AGILITY))
+    {
+        player->RemoveAura(ATTR_SPELL_AGILITY);
+    }
+
+    if (player->GetAura(ATTR_SPELL_INTELLECT))
+    {
+        player->RemoveAura(ATTR_SPELL_INTELLECT);
+    }
+
+    if (player->GetAura(ATTR_SPELL_SPIRIT))
+    {
+        player->RemoveAura(ATTR_SPELL_SPIRIT);
     }
 }
 
@@ -579,9 +638,39 @@ void AttriboostWorldScript::OnShutdownInitiate(ShutdownExitCode /*code*/, Shutdo
     SaveAttriboosts();
 }
 
+void AttriboostUnitScript::OnDamage(Unit* attacker, Unit* victim, uint32& /*damage*/)
+{
+    if (!attacker || !victim)
+    {
+        return;
+    }
+
+    if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
+    {
+        return;
+    }
+
+    if (!sConfigMgr->GetOption<bool>("Attriboost.DisablePvP", false))
+    {
+        return;
+    }
+
+    auto p1 = attacker->ToPlayer();
+    auto p2 = victim->ToPlayer();
+
+    if (!p1 || !p2)
+    {
+        return;
+    }
+
+    DisableAttributes(p1);
+    DisableAttributes(p2);
+}
+
 void SC_AddAttriboostScripts()
 {
     new AttriboostWorldScript();
     new AttriboostPlayerScript();
     new AttriboostCreatureScript();
+    new AttriboostUnitScript();
 }

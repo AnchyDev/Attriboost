@@ -9,7 +9,7 @@
 ########################################
 #
 #    Attriboost.Enable
-#        Description: Enabled/Disabled the librarian/bonus attributes.
+#        Description: Enable/Disable the librarian/bonus attributes.
 #        Default:     0 - Disabled
 #                     1 - Enabled
 #
@@ -23,3 +23,12 @@ Attriboost.Enable = 0
 #
 
 Attriboost.ResetCost = 2500000
+
+#
+#    Attriboost.DisablePvP
+#        Description: Enable/Disable the attributes in PvP combat.
+#                     0 - Disabled
+#        Default:     1 - Enabled
+#
+
+Attriboost.DisablePvP = 1
