@@ -19,6 +19,11 @@ void AttriboostPlayerScript::OnLogin(Player* player)
     }
 
     auto attributes = LoadAttriboostsForPlayer(player);
+    if (!attributes)
+    {
+        return;
+    }
+
     ApplyAttributes(player, attributes);
 }
 
