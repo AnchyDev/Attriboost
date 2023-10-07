@@ -589,27 +589,27 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
         AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttribute(s) to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
 
-        std::string optStamina = Acore::StringFormatFmt("{}Stamina ({}) {}",
+        std::string optStamina = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Stamina ({}) {}",
             IsAttributeAtMax(attributes->Stamina) ? "|cff777777" : "|cff000000",
             attributes->Stamina,
             IsAttributeAtMax(attributes->Stamina) ? "|cffFF0000(MAXED)|r" : "");
 
-        std::string optStrength = Acore::StringFormatFmt("{}Strength ({}) {}",
+        std::string optStrength = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Strength ({}) {}",
             IsAttributeAtMax(attributes->Strength) ? "|cff777777" : "|cff000000",
             attributes->Strength,
             IsAttributeAtMax(attributes->Strength) ? "|cffFF0000(MAXED)|r" : "");
 
-        std::string optAgility = Acore::StringFormatFmt("{}Agility ({}) {}",
+        std::string optAgility = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Agility ({}) {}",
             IsAttributeAtMax(attributes->Agility) ? "|cff777777" : "|cff000000",
             attributes->Agility,
             IsAttributeAtMax(attributes->Agility) ? "|cffFF0000(MAXED)|r" : "");
 
-        std::string optIntellect = Acore::StringFormatFmt("{}Intellect ({}) {}",
+        std::string optIntellect = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Intellect ({}) {}",
             IsAttributeAtMax(attributes->Intellect) ? "|cff777777" : "|cff000000",
             attributes->Intellect,
             IsAttributeAtMax(attributes->Intellect) ? "|cffFF0000(MAXED)|r" : "");
 
-        std::string optSpirit = Acore::StringFormatFmt("{}Spirit ({}) {}",
+        std::string optSpirit = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Spirit ({}) {}",
             IsAttributeAtMax(attributes->Spirit) ? "|cff777777" : "|cff000000",
             attributes->Spirit,
             IsAttributeAtMax(attributes->Spirit) ? "|cffFF0000(MAXED)|r" : "");
