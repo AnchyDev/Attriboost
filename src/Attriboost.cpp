@@ -50,6 +50,18 @@ void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* 
 
 void AttriboostPlayerScript::OnPlayerLeaveCombat(Player* player)
 {
+    if (!player)
+    {
+        return;
+    }
+
+    // This hook is called when removing the player from the world (like shutdown),
+    // even when you are not in combat.
+    if (player->IsDuringRemoveFromWorld() || !player->IsInWorld())
+    {
+        return;
+    }
+
     if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
     {
         return;
