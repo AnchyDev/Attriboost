@@ -754,12 +754,6 @@ bool AttriboostCreatureScript::OnGossipSelect(Player* player, Creature* creature
         OnGossipHello(player, creature);
     }
 
-    if (action > 5000)
-    {
-        HandleAttributeAllocation(player, action, false);
-        OnGossipHello(player, creature);
-    }
-
     if (action == 1000)
     {
         HandleAttributeAllocation(player, action, true);
@@ -769,6 +763,12 @@ bool AttriboostCreatureScript::OnGossipSelect(Player* player, Creature* creature
     if (action >= 2000 && action < 3000)
     {
         HandleSettings(player, creature, action);
+    }
+
+    if (action > 5000)
+    {
+        HandleAttributeAllocation(player, action, false);
+        OnGossipHello(player, creature);
     }
 
     return true;
