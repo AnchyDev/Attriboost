@@ -661,7 +661,7 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
     {
-        SendGossipMenuFor(player, 441192, creature);
+        SendGossipMenuFor(player, ATTR_NPC_TEXT_DISABLED, creature);
 
         return true;
     }
@@ -732,11 +732,11 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     if (HasAttributesToSpend(player))
     {
-        SendGossipMenuFor(player, 441191, creature);
+        SendGossipMenuFor(player, ATTR_NPC_TEXT_HAS_ATTRIBUTES, creature);
     }
     else
     {
-        SendGossipMenuFor(player, 441190, creature);
+        SendGossipMenuFor(player, ATTR_NPC_TEXT_GENERIC, creature);
     }
 
     return true;
