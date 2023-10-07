@@ -606,6 +606,11 @@ uint32 GetTotalAttributes(Player* player)
     return GetTotalAttributes(attributes);
 }
 
+uint32 GetResetCost()
+{
+    return sConfigMgr->GetOption<uint32>("Attriboost.ResetCost", 2500000);
+}
+
 bool HasSetting(Player* player, uint32 setting)
 {
     if (!player)
@@ -724,7 +729,7 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     if (HasAttributes(player))
     {
-        uint32 resetCost = sConfigMgr->GetOption<uint32>("Attriboost.ResetCost", 2500000);
+        uint32 resetCost = GetResetCost();
         AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\UnlearnGossipIcon:16|t Reset Attributes", GOSSIP_SENDER_MAIN, 1000, "Are you sure you want to reset your attributes?", resetCost, false);
     }
 
@@ -809,7 +814,7 @@ void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 
 
     if (reset)
     {
-        auto cost = sConfigMgr->GetOption<uint32>("Attriboost.ResetCost", 2500000);
+        auto cost = GetResetCost();
         if (player->HasEnoughMoney(cost))
         {
             player->SetMoney(player->GetMoney() - cost);

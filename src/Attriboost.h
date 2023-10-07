@@ -56,6 +56,7 @@ bool IsAttributeAtMax(uint32 /*attribute*/);
 uint32 GetAttributesToSpend(Player* /*player*/);
 uint32 GetTotalAttributes(Player* /*player*/);
 uint32 GetTotalAttributes(Attriboosts* /*attributes*/);
+uint32 GetResetCost();
 bool HasSetting(Player* player, uint32 /*setting*/);
 void ToggleSetting(Player* player, uint32 /*setting*/);
 
