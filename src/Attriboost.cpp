@@ -376,37 +376,74 @@ void DisableAttributes(Player* player)
     }
 }
 
-void AddAttribute(Attriboosts* attributes, uint32 attribute)
+bool TryAddAttribute(Attriboosts* attributes, uint32 attribute)
 {
-    if (attributes->Unallocated < 1)
+    bool alreadyMaxValue = false;
+
+    if (attribute == ATTR_SPELL_STAMINA)
     {
-        return;
+        if (!IsAttributeAtMax(attributes->Stamina))
+        {
+            attributes->Stamina += 1;
+        }
+        else
+        {
+            alreadyMaxValue = true;
+        }
+    }
+    else if (attribute == ATTR_SPELL_STRENGTH)
+    {
+        if (!IsAttributeAtMax(attributes->Strength))
+        {
+            attributes->Strength += 1;
+        }
+        else
+        {
+            alreadyMaxValue = true;
+        }
+    }
+    else if (attribute == ATTR_SPELL_AGILITY)
+    {
+        if (!IsAttributeAtMax(attributes->Agility))
+        {
+            attributes->Agility += 1;
+        }
+        else
+        {
+            alreadyMaxValue = true;
+        }
+    }
+    else if (attribute == ATTR_SPELL_INTELLECT)
+    {
+        if (!IsAttributeAtMax(attributes->Intellect))
+        {
+            attributes->Intellect += 1;
+        }
+        else
+        {
+            alreadyMaxValue = true;
+        }
+    }
+    else if (attribute == ATTR_SPELL_SPIRIT)
+    {
+        if (!IsAttributeAtMax(attributes->Spirit))
+        {
+            attributes->Spirit += 1;
+        }
+        else
+        {
+            alreadyMaxValue = true;
+        }
     }
 
-    switch (attribute)
+    if (alreadyMaxValue)
     {
-    case ATTR_SPELL_STAMINA:
-        attributes->Stamina += 1;
-        break;
-
-    case ATTR_SPELL_STRENGTH:
-        attributes->Strength += 1;
-        break;
-
-    case ATTR_SPELL_AGILITY:
-        attributes->Agility += 1;
-        break;
-
-    case ATTR_SPELL_INTELLECT:
-        attributes->Intellect += 1;
-        break;
-
-    case ATTR_SPELL_SPIRIT:
-        attributes->Spirit += 1;
-        break;
+        return false;
     }
 
     attributes->Unallocated -= 1;
+
+    return true;
 }
 
 void ResetAttributes(Attriboosts* attributes)
@@ -445,6 +482,11 @@ bool HasAttributes(Player* player)
     }
 
     return GetTotalAttributes(attributes) > 0;
+}
+
+bool IsAttributeAtMax(uint32 attribute)
+{
+    return attribute >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax", 100);
 }
 
 uint32 GetAttributesToSpend(Player* player)
@@ -547,21 +589,46 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
         AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttribute(s) to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
 
+        std::string optStamina = Acore::StringFormatFmt("{}Stamina ({}) {}",
+            IsAttributeAtMax(attributes->Stamina) ? "|cff777777" : "|cff000000",
+            attributes->Stamina,
+            IsAttributeAtMax(attributes->Stamina) ? "|cffFF0000(MAXED)|r" : "");
+
+        std::string optStrength = Acore::StringFormatFmt("{}Strength ({}) {}",
+            IsAttributeAtMax(attributes->Strength) ? "|cff777777" : "|cff000000",
+            attributes->Strength,
+            IsAttributeAtMax(attributes->Strength) ? "|cffFF0000(MAXED)|r" : "");
+
+        std::string optAgility = Acore::StringFormatFmt("{}Agility ({}) {}",
+            IsAttributeAtMax(attributes->Agility) ? "|cff777777" : "|cff000000",
+            attributes->Agility,
+            IsAttributeAtMax(attributes->Agility) ? "|cffFF0000(MAXED)|r" : "");
+
+        std::string optIntellect = Acore::StringFormatFmt("{}Intellect ({}) {}",
+            IsAttributeAtMax(attributes->Intellect) ? "|cff777777" : "|cff000000",
+            attributes->Intellect,
+            IsAttributeAtMax(attributes->Intellect) ? "|cffFF0000(MAXED)|r" : "");
+
+        std::string optSpirit = Acore::StringFormatFmt("{}Spirit ({}) {}",
+            IsAttributeAtMax(attributes->Spirit) ? "|cff777777" : "|cff000000",
+            attributes->Spirit,
+            IsAttributeAtMax(attributes->Spirit) ? "|cffFF0000(MAXED)|r" : "");
+
         if (HasSetting(player, ATTR_SETTING_PROMPT))
         {
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina ({})", attributes->Stamina), GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength ({})", attributes->Strength), GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH, "Are you sure you want to spend your points in strength?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility ({})", attributes->Agility), GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect ({})", attributes->Intellect), GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit ({})", attributes->Spirit), GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStamina, GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStrength, GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH, "Are you sure you want to spend your points in strength?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
         }
         else
         {
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Stamina ({})", attributes->Stamina), GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Strength ({})", attributes->Strength), GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Agility ({})", attributes->Agility), GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Intellect ({})", attributes->Intellect), GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t Spirit ({})", attributes->Spirit), GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStamina, GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStrength, GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
         }
     }
 
@@ -656,7 +723,19 @@ void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 
     }
     else
     {
-        AddAttribute(attributes, attribute);
+
+        if (attributes->Unallocated < 1)
+        {
+            ChatHandler(player->GetSession()).SendSysMessage("You have no free attribute points to spend.");
+            return;
+        }
+
+        auto result = TryAddAttribute(attributes, attribute);
+        if (!result)
+        {
+            ChatHandler(player->GetSession()).SendSysMessage("This attribute is already at the maximum.");
+            return;
+        }
     }
 
     ApplyAttributes(player, attributes);

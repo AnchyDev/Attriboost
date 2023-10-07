@@ -32,3 +32,11 @@ Attriboost.ResetCost = 2500000
 #
 
 Attriboost.DisablePvP = 1
+
+#
+#    Attriboost.AttributeMax
+#        Description: The max value each attribute can be allocated.
+#        Default:     100
+#
+
+Attriboost.AttributeMax = 100
