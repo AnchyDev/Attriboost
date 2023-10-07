@@ -6,3 +6,6 @@ Adds a `Librarian` that accepts `Book's of Knowledge` to increase base attribute
 - Add the book (item_id: 16073) to your loot template, quests, reward modules, etc..
 - Spawn in the librarian (npc_id: 441153).
 - Enable the module in config.
+
+## Credits
+- Foe - I basically stole his idea for using auras as attributes.
