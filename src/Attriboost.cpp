@@ -259,7 +259,6 @@ Attriboosts* LoadAttriboostsForPlayer(Player* player)
 
     if (!qResult)
     {
-        LOG_ERROR("module", "Failed to load from 'attriboost_attributes' table.");
         return nullptr;
     }
 
