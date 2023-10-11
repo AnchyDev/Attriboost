@@ -52,7 +52,7 @@ bool TryAddAttribute(Attriboosts* /*attributes*/, uint32 /*attribute*/);
 void ResetAttributes(Attriboosts* /*attributes*/);
 bool HasAttributesToSpend(Player* /*player*/);
 bool HasAttributes(Player* /*player*/);
-bool IsAttributeAtMax(uint32 /*attribute*/);
+bool IsAttributeAtMax(uint32 /*attribute*/, uint32 /*value*/);
 uint32 GetAttributesToSpend(Player* /*player*/);
 uint32 GetTotalAttributes(Player* /*player*/);
 uint32 GetTotalAttributes(Attriboosts* /*attributes*/);

@@ -471,7 +471,7 @@ bool TryAddAttribute(Attriboosts* attributes, uint32 attribute)
 
     if (attribute == ATTR_SPELL_STAMINA)
     {
-        if (!IsAttributeAtMax(attributes->Stamina))
+        if (!IsAttributeAtMax(attribute, attributes->Stamina))
         {
             attributes->Stamina += 1;
         }
@@ -482,7 +482,7 @@ bool TryAddAttribute(Attriboosts* attributes, uint32 attribute)
     }
     else if (attribute == ATTR_SPELL_STRENGTH)
     {
-        if (!IsAttributeAtMax(attributes->Strength))
+        if (!IsAttributeAtMax(attribute, attributes->Strength))
         {
             attributes->Strength += 1;
         }
@@ -493,7 +493,7 @@ bool TryAddAttribute(Attriboosts* attributes, uint32 attribute)
     }
     else if (attribute == ATTR_SPELL_AGILITY)
     {
-        if (!IsAttributeAtMax(attributes->Agility))
+        if (!IsAttributeAtMax(attribute, attributes->Agility))
         {
             attributes->Agility += 1;
         }
@@ -504,7 +504,7 @@ bool TryAddAttribute(Attriboosts* attributes, uint32 attribute)
     }
     else if (attribute == ATTR_SPELL_INTELLECT)
     {
-        if (!IsAttributeAtMax(attributes->Intellect))
+        if (!IsAttributeAtMax(attribute, attributes->Intellect))
         {
             attributes->Intellect += 1;
         }
@@ -515,7 +515,7 @@ bool TryAddAttribute(Attriboosts* attributes, uint32 attribute)
     }
     else if (attribute == ATTR_SPELL_SPIRIT)
     {
-        if (!IsAttributeAtMax(attributes->Spirit))
+        if (!IsAttributeAtMax(attribute, attributes->Spirit))
         {
             attributes->Spirit += 1;
         }
@@ -573,9 +573,27 @@ bool HasAttributes(Player* player)
     return GetTotalAttributes(attributes) > 0;
 }
 
-bool IsAttributeAtMax(uint32 attribute)
+bool IsAttributeAtMax(uint32 attribute, uint32 value)
 {
-    return attribute >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax", 100);
+    switch (attribute)
+    {
+    case ATTR_SPELL_STAMINA:
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Stamina", 100);
+
+    case ATTR_SPELL_STRENGTH:
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Strength", 100);
+
+    case ATTR_SPELL_AGILITY:
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Agility", 100);
+
+    case ATTR_SPELL_INTELLECT:
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Intellect", 100);
+
+    case ATTR_SPELL_SPIRIT:
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Spirit", 100);
+    }
+
+    return true;
 }
 
 uint32 GetAttributesToSpend(Player* player)
@@ -684,29 +702,29 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
         AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttribute(s) to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
 
         std::string optStamina = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Stamina ({}) {}",
-            IsAttributeAtMax(attributes->Stamina) ? "|cff777777" : "|cff000000",
+            IsAttributeAtMax(ATTR_SPELL_STAMINA, attributes->Stamina) ? "|cff777777" : "|cff000000",
             attributes->Stamina,
-            IsAttributeAtMax(attributes->Stamina) ? "|cffFF0000(MAXED)|r" : "");
+            IsAttributeAtMax(ATTR_SPELL_STAMINA, attributes->Stamina) ? "|cffFF0000(MAXED)|r" : "");
 
         std::string optStrength = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Strength ({}) {}",
-            IsAttributeAtMax(attributes->Strength) ? "|cff777777" : "|cff000000",
+            IsAttributeAtMax(ATTR_SPELL_STRENGTH, attributes->Strength) ? "|cff777777" : "|cff000000",
             attributes->Strength,
-            IsAttributeAtMax(attributes->Strength) ? "|cffFF0000(MAXED)|r" : "");
+            IsAttributeAtMax(ATTR_SPELL_STRENGTH, attributes->Strength) ? "|cffFF0000(MAXED)|r" : "");
 
         std::string optAgility = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Agility ({}) {}",
-            IsAttributeAtMax(attributes->Agility) ? "|cff777777" : "|cff000000",
+            IsAttributeAtMax(ATTR_SPELL_AGILITY, attributes->Agility) ? "|cff777777" : "|cff000000",
             attributes->Agility,
-            IsAttributeAtMax(attributes->Agility) ? "|cffFF0000(MAXED)|r" : "");
+            IsAttributeAtMax(ATTR_SPELL_AGILITY, attributes->Agility) ? "|cffFF0000(MAXED)|r" : "");
 
         std::string optIntellect = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Intellect ({}) {}",
-            IsAttributeAtMax(attributes->Intellect) ? "|cff777777" : "|cff000000",
+            IsAttributeAtMax(ATTR_SPELL_INTELLECT, attributes->Intellect) ? "|cff777777" : "|cff000000",
             attributes->Intellect,
-            IsAttributeAtMax(attributes->Intellect) ? "|cffFF0000(MAXED)|r" : "");
+            IsAttributeAtMax(ATTR_SPELL_INTELLECT, attributes->Intellect) ? "|cffFF0000(MAXED)|r" : "");
 
         std::string optSpirit = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Spirit ({}) {}",
-            IsAttributeAtMax(attributes->Spirit) ? "|cff777777" : "|cff000000",
+            IsAttributeAtMax(ATTR_SPELL_SPIRIT, attributes->Spirit) ? "|cff777777" : "|cff000000",
             attributes->Spirit,
-            IsAttributeAtMax(attributes->Spirit) ? "|cffFF0000(MAXED)|r" : "");
+            IsAttributeAtMax(ATTR_SPELL_SPIRIT, attributes->Spirit) ? "|cffFF0000(MAXED)|r" : "");
 
         if (HasSetting(player, ATTR_SETTING_PROMPT))
         {
