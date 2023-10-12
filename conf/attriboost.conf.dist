@@ -39,8 +39,8 @@ Attriboost.DisablePvP = 1
 #        Default:     100
 #
 
-Attriboost.AttributeMax.Stamina = 100
-Attriboost.AttributeMax.Strength = 100
-Attriboost.AttributeMax.Agility = 100
-Attriboost.AttributeMax.Intellect = 100
-Attriboost.AttributeMax.Spirit = 100
+Attriboost.Max.Stamina = 100
+Attriboost.Max.Strength = 100
+Attriboost.Max.Agility = 100
+Attriboost.Max.Intellect = 100
+Attriboost.Max.Spirit = 100

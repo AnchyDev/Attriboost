@@ -578,19 +578,19 @@ bool IsAttributeAtMax(uint32 attribute, uint32 value)
     switch (attribute)
     {
     case ATTR_SPELL_STAMINA:
-        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Stamina", 100);
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.Max.Stamina", 100);
 
     case ATTR_SPELL_STRENGTH:
-        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Strength", 100);
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.Max.Strength", 100);
 
     case ATTR_SPELL_AGILITY:
-        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Agility", 100);
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.Max.Agility", 100);
 
     case ATTR_SPELL_INTELLECT:
-        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Intellect", 100);
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.Max.Intellect", 100);
 
     case ATTR_SPELL_SPIRIT:
-        return value >= sConfigMgr->GetOption<uint32>("Attriboost.AttributeMax.Spirit", 100);
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.Max.Spirit", 100);
     }
 
     return true;
