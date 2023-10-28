@@ -62,6 +62,7 @@ void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* 
     auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
+        LOG_INFO("module", "Failed to get attriboosts for player '{}' with guid '{}'. !!!REPORT THIS!!!", player->GetName(), player->GetGUID().GetRawValue());
         return;
     }
 
