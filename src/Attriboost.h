@@ -22,7 +22,8 @@ enum AttriboostConstants
     ATTR_SPELL_AGILITY = 7471,
     ATTR_SPELL_INTELLECT = 7468,
     ATTR_SPELL_STRENGTH = 7464,
-    ATTR_SPELL_SPIRIT = 7474
+    ATTR_SPELL_SPIRIT = 7474,
+    ATTR_SPELL_SPELL_POWER = 9392
 };
 
 struct Attriboosts
@@ -34,6 +35,7 @@ struct Attriboosts
     uint32 Agility;
     uint32 Intellect;
     uint32 Spirit;
+    uint32 SpellPower;
 
     uint32 Settings;
 };

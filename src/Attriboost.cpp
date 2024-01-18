@@ -172,6 +172,9 @@ std::string AttriboostPlayerScript::GetAttributeName(uint32 attribute)
 
     case ATTR_SPELL_SPIRIT:
         return "Spirit";
+
+    case ATTR_SPELL_SPELL_POWER:
+        return "Spell Power";
     }
 
     return std::string();
@@ -193,6 +196,7 @@ Attriboosts* GetAttriboosts(Player* player)
         attriboosts.Agility = 0;
         attriboosts.Intellect = 0;
         attriboosts.Spirit = 0;
+        attriboosts.SpellPower = 0;
 
         attriboosts.Settings = ATTR_SETTING_PROMPT;
 
@@ -237,8 +241,9 @@ void LoadAttriboosts()
         attriboosts.Agility = fields[4].Get<uint32>();
         attriboosts.Intellect = fields[5].Get<uint32>();
         attriboosts.Spirit = fields[6].Get<uint32>();
+        attriboosts.SpellPower = fields[7].Get<uint32>();
 
-        attriboosts.Settings = fields[7].Get<uint32>();
+        attriboosts.Settings = fields[8].Get<uint32>();
 
         attriboostsMap.emplace(guid, attriboosts);
 
@@ -274,8 +279,9 @@ Attriboosts* LoadAttriboostsForPlayer(Player* player)
     newAttributes.Agility = fields[4].Get<uint32>();
     newAttributes.Intellect = fields[5].Get<uint32>();
     newAttributes.Spirit = fields[6].Get<uint32>();
+    newAttributes.SpellPower = fields[7].Get<uint32>();
 
-    newAttributes.Settings = fields[7].Get<uint32>();
+    newAttributes.Settings = fields[8].Get<uint32>();
 
     auto attributes = attriboostsMap.find(guid);
 
@@ -304,13 +310,14 @@ void SaveAttriboosts()
         auto agility = it->second.Agility;
         auto intellect = it->second.Intellect;
         auto spirit = it->second.Spirit;
+        auto spellPower = it->second.SpellPower;
 
         auto settings = it->second.Settings;
 
-        CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit, settings) VALUES ({}, {}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}, settings={}",
+        CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit, spellpower, settings) VALUES ({}, {}, {}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}, spellpower={}, settings={}",
             guid,
-            unallocated, stamina, strength, agility, intellect, spirit, settings,
-            unallocated, stamina, strength, agility, intellect, spirit, settings);
+            unallocated, stamina, strength, agility, intellect, spirit, spellPower, settings,
+            unallocated, stamina, strength, agility, intellect, spirit, spellPower, settings);
     }
 }
 
@@ -331,13 +338,14 @@ void SaveAttriboostsForPlayer(Player* player)
     auto agility = attributes->Agility;
     auto intellect = attributes->Intellect;
     auto spirit = attributes->Spirit;
+    auto spellPower = attributes->SpellPower;
 
     auto settings = attributes->Settings;
 
-    CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit, settings) VALUES ({}, {}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}, settings={}",
+    CharacterDatabase.Execute("INSERT INTO `attriboost_attributes` (guid, unallocated, stamina, strength, agility, intellect, spirit, spellpower, settings) VALUES ({}, {}, {}, {}, {}, {}, {}, {}, {}) ON DUPLICATE KEY UPDATE unallocated={}, stamina={}, strength={}, agility={}, intellect={}, spirit={}, spellpower={}, settings={}",
         guid,
-        unallocated, stamina, strength, agility, intellect, spirit, settings,
-        unallocated, stamina, strength, agility, intellect, spirit, settings);
+        unallocated, stamina, strength, agility, intellect, spirit, spellPower, settings,
+        unallocated, stamina, strength, agility, intellect, spirit, spellPower, settings);
 }
 
 void ApplyAttributes(Player* player, Attriboosts* attributes)
@@ -428,6 +436,23 @@ void ApplyAttributes(Player* player, Attriboosts* attributes)
         if (player->GetAura(ATTR_SPELL_SPIRIT))
         {
             player->RemoveAura(ATTR_SPELL_SPIRIT);
+        }
+    }
+
+    if (attributes->SpellPower > 0)
+    {
+        auto spellPower = player->GetAura(ATTR_SPELL_SPELL_POWER);
+        if (!spellPower)
+        {
+            spellPower = player->AddAura(ATTR_SPELL_SPELL_POWER, player);
+        }
+        spellPower->SetStackAmount(attributes->SpellPower);
+    }
+    else
+    {
+        if (player->GetAura(ATTR_SPELL_SPELL_POWER))
+        {
+            player->RemoveAura(ATTR_SPELL_SPELL_POWER);
         }
     }
 }
@@ -525,6 +550,17 @@ bool TryAddAttribute(Attriboosts* attributes, uint32 attribute)
             alreadyMaxValue = true;
         }
     }
+    else if (attribute == ATTR_SPELL_SPELL_POWER)
+    {
+        if (!IsAttributeAtMax(attribute, attributes->SpellPower))
+        {
+            attributes->SpellPower += 1;
+        }
+        else
+        {
+            alreadyMaxValue = true;
+        }
+    }
 
     if (alreadyMaxValue)
     {
@@ -545,6 +581,7 @@ void ResetAttributes(Attriboosts* attributes)
     attributes->Agility = 0;
     attributes->Intellect = 0;
     attributes->Spirit = 0;
+    attributes->SpellPower = 0;
 }
 
 bool HasAttributesToSpend(Player* player)
@@ -592,6 +629,9 @@ bool IsAttributeAtMax(uint32 attribute, uint32 value)
 
     case ATTR_SPELL_SPIRIT:
         return value >= sConfigMgr->GetOption<uint32>("Attriboost.Max.Spirit", 100);
+
+    case ATTR_SPELL_SPELL_POWER:
+        return value >= sConfigMgr->GetOption<uint32>("Attriboost.Max.SpellPower", 100);
     }
 
     return true;
@@ -610,7 +650,7 @@ uint32 GetAttributesToSpend(Player* player)
 
 uint32 GetTotalAttributes(Attriboosts* attributes)
 {
-    return attributes->Stamina + attributes->Strength + attributes->Agility + attributes->Intellect + attributes->Spirit;
+    return attributes->Stamina + attributes->Strength + attributes->Agility + attributes->Intellect + attributes->Spirit + attributes->SpellPower;
 }
 
 uint32 GetTotalAttributes(Player* player)
@@ -727,6 +767,11 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
             attributes->Spirit,
             IsAttributeAtMax(ATTR_SPELL_SPIRIT, attributes->Spirit) ? "|cffFF0000(MAXED)|r" : "");
 
+        std::string optSpellPower = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Spell Power ({}) {}",
+            IsAttributeAtMax(ATTR_SPELL_SPELL_POWER, attributes->SpellPower) ? "|cff777777" : "|cff000000",
+            attributes->SpellPower,
+            IsAttributeAtMax(ATTR_SPELL_SPELL_POWER, attributes->SpellPower) ? "|cffFF0000(MAXED)|r" : "");
+
         if (HasSetting(player, ATTR_SETTING_PROMPT))
         {
             AddGossipItemFor(player, GOSSIP_ICON_DOT, optStamina, GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
@@ -734,6 +779,7 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
             AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
             AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
             AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpellPower, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPELL_POWER, "Are you sure you want to spel your points in spell power?", 0, false);
         }
         else
         {
@@ -742,6 +788,7 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
             AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
             AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
             AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
+            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpellPower, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPELL_POWER);
         }
     }
 
