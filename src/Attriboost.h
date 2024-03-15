@@ -11,6 +11,7 @@ enum AttriboostConstants
     ATTR_ITEM = 16073,
     ATTR_SPELL = 18282,
     ATTR_QUEST = 441153,
+    TALENT_QUEST = 441154,
 
     ATTR_SETTING_PROMPT = 1,
 
@@ -42,6 +43,8 @@ struct Attriboosts
 
 std::unordered_map<uint64, Attriboosts> attriboostsMap;
 
+void AddAttributePoint(Player* /*player*/);
+void AddTalentPoint(Player* /*player*/);
 Attriboosts* GetAttriboosts(Player* /*player*/);
 void ClearAttriboosts();
 void LoadAttriboosts();

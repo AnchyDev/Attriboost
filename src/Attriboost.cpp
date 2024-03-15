@@ -44,21 +44,36 @@ void AttriboostPlayerScript::OnLogout(Player* player)
 
 void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* quest)
 {
-    if (!player)
-    {
-        return;
-    }
-
-    if (quest->GetQuestId() != ATTR_QUEST)
-    {
-        return;
-    }
-
     if (!sConfigMgr->GetOption<bool>("Attriboost.Enable", false))
     {
         return;
     }
 
+    if (!player)
+    {
+        return;
+    }
+
+    switch (quest->GetQuestId())
+    {
+    case ATTR_QUEST:
+        AddAttributePoint(player);
+        break;
+
+    case TALENT_QUEST:
+        AddTalentPoint(player);
+        break;
+    }
+
+    if (quest->GetQuestId() != ATTR_QUEST &&
+        quest->GetQuestId() != TALENT_QUEST)
+    {
+        return;
+    }
+}
+
+void AddAttributePoint(Player* player)
+{
     auto attributes = GetAttriboosts(player);
     if (!attributes)
     {
@@ -67,6 +82,12 @@ void AttriboostPlayerScript::OnPlayerCompleteQuest(Player* player, Quest const* 
     }
 
     attributes->Unallocated += 1;
+}
+
+void AddTalentPoint(Player* player)
+{
+    player->RewardExtraBonusTalentPoints(1);
+    player->InitTalentForLevel();
 }
 
 void AttriboostPlayerScript::OnPlayerLeaveCombat(Player* player)
