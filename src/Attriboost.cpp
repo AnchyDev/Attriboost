@@ -882,7 +882,6 @@ void SendAllocateMenu(Player* player, Creature* creature)
 
     AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MONEYFRAME\\Arrow-Left-Down:16|t Back", GOSSIP_SENDER_MAIN, ATTR_GOSSIP_ALLOCATE_RETURN);
 
-
     if (HasAttributesToSpend(player))
     {
         SendGossipMenuFor(player, ATTR_NPC_TEXT_HAS_ATTRIBUTES, creature);
@@ -931,7 +930,6 @@ void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 
     }
     else
     {
-
         if (attributes->Unallocated < 1)
         {
             ChatHandler(player->GetSession()).SendSysMessage("You have no free attribute points to spend.");
