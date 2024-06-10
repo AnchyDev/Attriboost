@@ -15,6 +15,13 @@ enum AttriboostConstants
 
     ATTR_SETTING_PROMPT = 1,
 
+    ATTR_GOSSIP_ALLOCATE = 1,
+    ATTR_GOSSIP_ALLOCATE_RETURN = 2,
+    ATTR_GOSSIP_ALLOCATE_RESET = 3,
+    ATTR_GOSSIP_SETTINGS = 4,
+    ATTR_GOSSIP_SETTINGS_PROMPT = 5,
+    ATTR_GOSSIP_SETTINGS_RETURN = 6,
+
     ATTR_NPC_TEXT_HAS_ATTRIBUTES = 441191,
     ATTR_NPC_TEXT_GENERIC = 441190,
     ATTR_NPC_TEXT_DISABLED = 441192,
@@ -62,8 +69,10 @@ uint32 GetAttributesToSpend(Player* /*player*/);
 uint32 GetTotalAttributes(Player* /*player*/);
 uint32 GetTotalAttributes(Attriboosts* /*attributes*/);
 uint32 GetResetCost();
-bool HasSetting(Player* player, uint32 /*setting*/);
-void ToggleSetting(Player* player, uint32 /*setting*/);
+bool HasSetting(Player* /*player*/, uint32 /*setting*/);
+void ToggleSetting(Player* /*player*/, uint32 /*setting*/);
+void SendAllocateMenu(Player* /*player*/, Creature* /*creature*/);
+void SendSettingsMenu(Player* /*player*/, Creature* /*creature*/);
 
 class AttriboostPlayerScript : public PlayerScript
 {

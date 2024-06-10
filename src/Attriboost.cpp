@@ -752,137 +752,151 @@ bool AttriboostCreatureScript::OnGossipHello(Player* player, Creature* creature)
 
     player->PrepareQuestMenu(creature->GetGUID());
 
-    if (HasAttributesToSpend(player))
-    {
-        auto attributes = GetAttriboosts(player);
-        if (!attributes)
-        {
-            CloseGossipMenuFor(player);
-            return false;
-        }
+    AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\TrainerGossipIcon:16|t Allocate Points", GOSSIP_SENDER_MAIN, ATTR_GOSSIP_ALLOCATE);
+    AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\HealerGossipIcon:16|t Settings", GOSSIP_SENDER_MAIN, ATTR_GOSSIP_SETTINGS);
 
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttribute(s) to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
-
-        std::string optStamina = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Stamina ({}) {}",
-            IsAttributeAtMax(ATTR_SPELL_STAMINA, attributes->Stamina) ? "|cff777777" : "|cff000000",
-            attributes->Stamina,
-            IsAttributeAtMax(ATTR_SPELL_STAMINA, attributes->Stamina) ? "|cffFF0000(MAXED)|r" : "");
-
-        std::string optStrength = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Strength ({}) {}",
-            IsAttributeAtMax(ATTR_SPELL_STRENGTH, attributes->Strength) ? "|cff777777" : "|cff000000",
-            attributes->Strength,
-            IsAttributeAtMax(ATTR_SPELL_STRENGTH, attributes->Strength) ? "|cffFF0000(MAXED)|r" : "");
-
-        std::string optAgility = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Agility ({}) {}",
-            IsAttributeAtMax(ATTR_SPELL_AGILITY, attributes->Agility) ? "|cff777777" : "|cff000000",
-            attributes->Agility,
-            IsAttributeAtMax(ATTR_SPELL_AGILITY, attributes->Agility) ? "|cffFF0000(MAXED)|r" : "");
-
-        std::string optIntellect = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Intellect ({}) {}",
-            IsAttributeAtMax(ATTR_SPELL_INTELLECT, attributes->Intellect) ? "|cff777777" : "|cff000000",
-            attributes->Intellect,
-            IsAttributeAtMax(ATTR_SPELL_INTELLECT, attributes->Intellect) ? "|cffFF0000(MAXED)|r" : "");
-
-        std::string optSpirit = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Spirit ({}) {}",
-            IsAttributeAtMax(ATTR_SPELL_SPIRIT, attributes->Spirit) ? "|cff777777" : "|cff000000",
-            attributes->Spirit,
-            IsAttributeAtMax(ATTR_SPELL_SPIRIT, attributes->Spirit) ? "|cffFF0000(MAXED)|r" : "");
-
-        std::string optSpellPower = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Spell Power ({}) {}",
-            IsAttributeAtMax(ATTR_SPELL_SPELL_POWER, attributes->SpellPower) ? "|cff777777" : "|cff000000",
-            attributes->SpellPower,
-            IsAttributeAtMax(ATTR_SPELL_SPELL_POWER, attributes->SpellPower) ? "|cffFF0000(MAXED)|r" : "");
-
-        if (HasSetting(player, ATTR_SETTING_PROMPT))
-        {
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStamina, GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStrength, GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH, "Are you sure you want to spend your points in strength?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpellPower, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPELL_POWER, "Are you sure you want to spel your points in spell power?", 0, false);
-        }
-        else
-        {
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStamina, GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optStrength, GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
-            AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpellPower, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPELL_POWER);
-        }
-    }
-
-    if (HasAttributes(player))
-    {
-        uint32 resetCost = GetResetCost();
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\UnlearnGossipIcon:16|t Reset Attributes", GOSSIP_SENDER_MAIN, 1000, "Are you sure you want to reset your attributes?", resetCost, false);
-    }
-
-    AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\HealerGossipIcon:16|t Settings", GOSSIP_SENDER_MAIN, 2000);
-
-    if (HasAttributesToSpend(player))
-    {
-        SendGossipMenuFor(player, ATTR_NPC_TEXT_HAS_ATTRIBUTES, creature);
-    }
-    else
-    {
-        SendGossipMenuFor(player, ATTR_NPC_TEXT_GENERIC, creature);
-    }
+    SendGossipMenuFor(player, ATTR_NPC_TEXT_GENERIC, creature);
 
     return true;
 }
 
 bool AttriboostCreatureScript::OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
 {
-    if (action == 0)
+    if (action == ATTR_GOSSIP_ALLOCATE)
     {
-        OnGossipHello(player, creature);
+        SendAllocateMenu(player, creature);
+        return true;
     }
 
-    if (action == 1000)
+    if (action == ATTR_GOSSIP_ALLOCATE_RETURN)
+    {
+        OnGossipHello(player, creature);
+        return true;
+    }
+
+    if (action == ATTR_GOSSIP_SETTINGS)
+    {
+        SendSettingsMenu(player, creature);
+        return true;
+    }
+
+    if (action == ATTR_GOSSIP_SETTINGS_PROMPT)
+    {
+        ToggleSetting(player, ATTR_SETTING_PROMPT);
+        SendSettingsMenu(player, creature);
+        return true;
+    }
+
+    if (action == ATTR_GOSSIP_SETTINGS_RETURN)
+    {
+        OnGossipHello(player, creature);
+        return true;
+    }
+
+    if (action == ATTR_GOSSIP_ALLOCATE_RESET)
     {
         HandleAttributeAllocation(player, action, true);
-        OnGossipHello(player, creature);
-    }
-
-    if (action >= 2000 && action < 3000)
-    {
-        HandleSettings(player, creature, action);
+        SendAllocateMenu(player, creature);
+        return true;
     }
 
     if (action > 5000)
     {
         HandleAttributeAllocation(player, action, false);
-        OnGossipHello(player, creature);
+        SendAllocateMenu(player, creature);
+        return true;
     }
 
     return true;
 }
 
-void AttriboostCreatureScript::HandleSettings(Player* player, Creature* creature, uint32 action)
+void SendAllocateMenu(Player* player, Creature* creature)
 {
-    if (action == 2000)
+    ClearGossipMenuFor(player);
+
+    auto attributes = GetAttriboosts(player);
+    if (!attributes)
     {
-        ClearGossipMenuFor(player);
-
-        player->PrepareQuestMenu(creature->GetGUID());
-
-        auto hasPromptSetting = HasSetting(player, ATTR_SETTING_PROMPT);
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\HealerGossipIcon:16|t Prompt 'Are you sure': {}", hasPromptSetting ? "|cff00FF00Enabled|r" : "|cffFF0000Disabled"), GOSSIP_SENDER_MAIN, 2001);
-
-        AddGossipItemFor(player, GOSSIP_ICON_DOT, "Back", GOSSIP_SENDER_MAIN, 0);
-
-        SendGossipMenuFor(player, 441190, creature);
-
+        CloseGossipMenuFor(player);
         return;
     }
 
-    if (action == 2001)
+    player->PrepareQuestMenu(creature->GetGUID());
+
+    AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\TrainerGossipIcon:16|t |cffFF0000{} |rAttribute(s) to spend.", GetAttributesToSpend(player)), GOSSIP_SENDER_MAIN, 0);
+
+    std::string optStamina = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Stamina ({}) {}",
+        IsAttributeAtMax(ATTR_SPELL_STAMINA, attributes->Stamina) ? "|cff777777" : "|cff000000",
+        Acore::StringFormatFmt("{}/{}", attributes->Stamina, sConfigMgr->GetOption<uint32>("Attriboost.Max.Stamina", 100)),
+        IsAttributeAtMax(ATTR_SPELL_STAMINA, attributes->Stamina) ? "|cffFF0000(MAXED)|r" : "");
+
+    std::string optStrength = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Strength ({}) {}",
+        IsAttributeAtMax(ATTR_SPELL_STRENGTH, attributes->Strength) ? "|cff777777" : "|cff000000",
+        Acore::StringFormatFmt("{}/{}", attributes->Strength, sConfigMgr->GetOption<uint32>("Attriboost.Max.Strength", 100)),
+        IsAttributeAtMax(ATTR_SPELL_STRENGTH, attributes->Strength) ? "|cffFF0000(MAXED)|r" : "");
+
+    std::string optAgility = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Agility ({}) {}",
+        IsAttributeAtMax(ATTR_SPELL_AGILITY, attributes->Agility) ? "|cff777777" : "|cff000000",
+        Acore::StringFormatFmt("{}/{}", attributes->Agility, sConfigMgr->GetOption<uint32>("Attriboost.Max.Agility", 100)),
+        IsAttributeAtMax(ATTR_SPELL_AGILITY, attributes->Agility) ? "|cffFF0000(MAXED)|r" : "");
+
+    std::string optIntellect = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Intellect ({}) {}",
+        IsAttributeAtMax(ATTR_SPELL_INTELLECT, attributes->Intellect) ? "|cff777777" : "|cff000000",
+        Acore::StringFormatFmt("{}/{}", attributes->Intellect, sConfigMgr->GetOption<uint32>("Attriboost.Max.Intellect", 100)),
+        IsAttributeAtMax(ATTR_SPELL_INTELLECT, attributes->Intellect) ? "|cffFF0000(MAXED)|r" : "");
+
+    std::string optSpirit = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Spirit ({}) {}",
+        IsAttributeAtMax(ATTR_SPELL_SPIRIT, attributes->Spirit) ? "|cff777777" : "|cff000000",
+        Acore::StringFormatFmt("{}/{}", attributes->Spirit, sConfigMgr->GetOption<uint32>("Attriboost.Max.Spirit", 100)),
+        IsAttributeAtMax(ATTR_SPELL_SPIRIT, attributes->Spirit) ? "|cffFF0000(MAXED)|r" : "");
+
+    std::string optSpellPower = Acore::StringFormatFmt("|TInterface\\MINIMAP\\UI-Minimap-ZoomInButton-Up:16|t {}Spell Power ({}) {}",
+        IsAttributeAtMax(ATTR_SPELL_SPELL_POWER, attributes->SpellPower) ? "|cff777777" : "|cff000000",
+        Acore::StringFormatFmt("{}/{}", attributes->SpellPower, sConfigMgr->GetOption<uint32>("Attriboost.Max.SpellPower", 100)),
+        IsAttributeAtMax(ATTR_SPELL_SPELL_POWER, attributes->SpellPower) ? "|cffFF0000(MAXED)|r" : "");
+
+    if (HasSetting(player, ATTR_SETTING_PROMPT))
     {
-        ToggleSetting(player, ATTR_SETTING_PROMPT);
-        HandleSettings(player, creature, 2000);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optStamina, GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA, "Are you sure you want to spend your points in stamina?", 0, false);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optStrength, GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH, "Are you sure you want to spend your points in strength?", 0, false);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY, "Are you sure you want to spend your points in agility?", 0, false);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT, "Are you sure you want to spend your points in intellect?", 0, false);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT, "Are you sure you want to spend your points in spirit?", 0, false);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpellPower, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPELL_POWER, "Are you sure you want to spel your points in spell power?", 0, false);
     }
+    else
+    {
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optStamina, GOSSIP_SENDER_MAIN, ATTR_SPELL_STAMINA);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optStrength, GOSSIP_SENDER_MAIN, ATTR_SPELL_STRENGTH);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optAgility, GOSSIP_SENDER_MAIN, ATTR_SPELL_AGILITY);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optIntellect, GOSSIP_SENDER_MAIN, ATTR_SPELL_INTELLECT);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpirit, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPIRIT);
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, optSpellPower, GOSSIP_SENDER_MAIN, ATTR_SPELL_SPELL_POWER);
+    }
+
+    if (HasAttributes(player))
+    {
+        uint32 resetCost = GetResetCost();
+        AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\GossipFrame\\UnlearnGossipIcon:16|t Reset Attributes", GOSSIP_SENDER_MAIN, ATTR_GOSSIP_ALLOCATE_RESET, "Are you sure you want to reset your attributes?", resetCost, false);
+    }
+
+    AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MONEYFRAME\\Arrow-Left-Down:16|t Back", GOSSIP_SENDER_MAIN, ATTR_GOSSIP_ALLOCATE_RETURN);
+
+    SendGossipMenuFor(player, ATTR_NPC_TEXT_HAS_ATTRIBUTES, creature);
+}
+
+void SendSettingsMenu(Player* player, Creature* creature)
+{
+    ClearGossipMenuFor(player);
+
+    player->PrepareQuestMenu(creature->GetGUID());
+
+    auto hasPromptSetting = HasSetting(player, ATTR_SETTING_PROMPT);
+    AddGossipItemFor(player, GOSSIP_ICON_DOT, Acore::StringFormatFmt("|TInterface\\GossipFrame\\HealerGossipIcon:16|t Prompt 'Are you sure': {}", hasPromptSetting ? "|cff00FF00Enabled|r" : "|cffFF0000Disabled"), GOSSIP_SENDER_MAIN, ATTR_GOSSIP_SETTINGS_PROMPT);
+
+    AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MONEYFRAME\\Arrow-Left-Down:16|t Back", GOSSIP_SENDER_MAIN, ATTR_GOSSIP_SETTINGS_RETURN);
+
+    SendGossipMenuFor(player, ATTR_NPC_TEXT_GENERIC, creature);
 }
 
 void AttriboostCreatureScript::HandleAttributeAllocation(Player* player, uint32 attribute, bool reset)
