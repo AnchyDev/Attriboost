@@ -104,7 +104,6 @@ public:
     virtual bool OnGossipHello(Player* /*player*/, Creature* /*creature*/) override;
     virtual bool OnGossipSelect(Player* /*player*/, Creature* /*creature*/, uint32 /*sender*/, uint32 /*action*/) override;
 
-    void HandleSettings(Player* /*player*/, Creature* /*creature*/, uint32 /*action*/);
     void HandleAttributeAllocation(Player* /*player*/, uint32 /*attribute*/, bool /*reset*/);
 };
 
