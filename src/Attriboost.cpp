@@ -882,7 +882,15 @@ void SendAllocateMenu(Player* player, Creature* creature)
 
     AddGossipItemFor(player, GOSSIP_ICON_DOT, "|TInterface\\MONEYFRAME\\Arrow-Left-Down:16|t Back", GOSSIP_SENDER_MAIN, ATTR_GOSSIP_ALLOCATE_RETURN);
 
-    SendGossipMenuFor(player, ATTR_NPC_TEXT_HAS_ATTRIBUTES, creature);
+
+    if (HasAttributesToSpend(player))
+    {
+        SendGossipMenuFor(player, ATTR_NPC_TEXT_HAS_ATTRIBUTES, creature);
+    }
+    else
+    {
+        SendGossipMenuFor(player, ATTR_NPC_TEXT_GENERIC, creature);
+    }
 }
 
 void SendSettingsMenu(Player* player, Creature* creature)
